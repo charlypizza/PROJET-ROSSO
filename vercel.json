@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/studio/:path*",
+      "destination": "https://rosso-cafe-marseille.sanity.studio/:path*"
+    }
+  ]
+}

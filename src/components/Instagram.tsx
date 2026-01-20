@@ -1,8 +1,11 @@
+import { useState, useEffect } from 'react';
 import { Instagram as InstagramIcon } from 'lucide-react';
+import { client, urlFor } from '../lib/sanity';
+import { InstagramPhoto } from '../types/sanity';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/rossocafemarseille_/';
 
-const photos = [
+const fallbackPhotos = [
   'https://charlypizza.github.io/assets/rosso-cafe-marseille-coffee-shop-tendance-instagram-post.webp',
   'https://charlypizza.github.io/assets/rosso-cafe-marseille-flatlay-cafe-sandwich-dessert.webp',
   'https://charlypizza.github.io/assets/rosso-cafe-marseille-latte-art-cafe-specialite.webp',
@@ -12,6 +15,35 @@ const photos = [
 ];
 
 export default function Instagram() {
+  const [photos, setPhotos] = useState<string[]>(fallbackPhotos);
+
+  useEffect(() => {
+    async function fetchInstagramPhotos() {
+      try {
+        const data = await client.fetch<InstagramPhoto[]>(`*[_type == "instagramPhoto"] | order(_createdAt asc)`);
+        
+        if (data && data.length > 0) {
+          const photoUrls = data.map(photo => {
+            if (photo.imageUrl) {
+              return photo.imageUrl;
+            } else if (photo.image) {
+              return urlFor(photo.image).url();
+            }
+            return '';
+          }).filter(url => url !== '');
+
+          if (photoUrls.length > 0) {
+            setPhotos(photoUrls);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Instagram photos:', error);
+      }
+    }
+
+    fetchInstagramPhotos();
+  }, []);
+
   const duplicatedPhotos = [...photos, ...photos];
 
   return (

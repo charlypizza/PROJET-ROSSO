@@ -1,5 +1,6 @@
 import { MapPin, Navigation } from 'lucide-react';
 
+
 export default function Map() {
   const address = '29 Rue Pavillon';
   const mapsUrl = 'https://maps.app.goo.gl/2GWWxjoKGWEA6sx59';

@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react';
+import { client, urlFor } from '../lib/sanity';
+import { GalleryMedia } from '../types/sanity';
+
 const INSTAGRAM_URL = 'https://www.instagram.com/rossocafemarseille_/';
 
-const media = [
+const fallbackMedia = [
   {
     url: 'https://charlypizza.github.io/assets/rosso-cafe-marseille-sandwichs-maison-faits-sur-place.webp',
     alt: 'Sandwich maison',
@@ -48,7 +52,13 @@ const gridPositions = [
   'md:col-start-4 md:col-end-5 md:row-start-3 md:row-end-4',
 ];
 
-function MediaItem({ item }: { item: typeof media[0] }) {
+type MediaItem = {
+  url: string;
+  alt: string;
+  isVideo: boolean;
+};
+
+function MediaItem({ item }: { item: MediaItem }) {
   if (item.isVideo) {
     return (
       <video
@@ -72,6 +82,35 @@ function MediaItem({ item }: { item: typeof media[0] }) {
 }
 
 export default function Gallery() {
+  const [media, setMedia] = useState<MediaItem[]>(fallbackMedia);
+
+  useEffect(() => {
+    async function fetchGalleryMedia() {
+      try {
+        const data = await client.fetch<GalleryMedia[]>(`*[_type == "galleryMedia"] | order(_createdAt asc)`);
+        
+        if (data && data.length > 0) {
+          const mediaItems = data.map(item => {
+            const url = item.mediaUrl || (item.image ? urlFor(item.image).url() : '');
+            return {
+              url,
+              alt: item.alt || 'Gallery image',
+              isVideo: item.isVideo || false,
+            };
+          }).filter(item => item.url !== '');
+
+          if (mediaItems.length > 0) {
+            setMedia(mediaItems);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching gallery media:', error);
+      }
+    }
+
+    fetchGalleryMedia();
+  }, []);
+
   return (
     <section id="gallery" className="bg-rosso">
       <div className="gallery-grid">

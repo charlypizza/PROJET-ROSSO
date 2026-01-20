@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { client, urlFor } from '../lib/sanity';
+import { HeroPanel } from '../types/sanity';
 
-const panels = [
+const fallbackPanels = [
   'https://charlypizza.github.io/assets/rosso-cafe-canette-chocolat-chaud-boisson-gourmande.webp',
   'https://charlypizza.github.io/assets/rosso-cafe-canette-blue-latte-vanille-boisson-signature.webp',
   'https://charlypizza.github.io/assets/rosso-cafe-canette-golden-latte-vanille-curcuma.webp',
@@ -9,6 +12,35 @@ const panels = [
 ];
 
 export default function Hero() {
+  const [panels, setPanels] = useState<string[]>(fallbackPanels);
+
+  useEffect(() => {
+    async function fetchHeroPanels() {
+      try {
+        const data = await client.fetch<HeroPanel[]>(`*[_type == "heroPanel"] | order(_createdAt asc)`);
+        
+        if (data && data.length > 0) {
+          const panelUrls = data.map(panel => {
+            if (panel.imageUrl) {
+              return panel.imageUrl;
+            } else if (panel.image) {
+              return urlFor(panel.image).url();
+            }
+            return '';
+          }).filter(url => url !== '');
+          
+          if (panelUrls.length > 0) {
+            setPanels(panelUrls);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching hero panels:', error);
+      }
+    }
+
+    fetchHeroPanels();
+  }, []);
+
   return (
     <section id="hero" className="relative h-screen w-full">
       <div className="flex h-[calc(100%-4rem)] w-full pt-14 sm:pt-16 bg-black">

@@ -1,30 +1,32 @@
 import { useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MenuSubcategory, MenuItem } from '../types/sanity';
 
 type SandwichItem = {
-  title: string;
-  description: string[];
+  title?: string;
+  description?: string[];
 };
 
 type SandwichSection = {
-  barTitle: string;
-  subtitle: string;
+  barTitle?: string;
+  subtitle?: string;
   items: SandwichItem[];
   footer?: string;
 };
 
 type DrinkItem = {
-  name: string;
+  name?: string;
   variant?: string;
 };
 
 type DrinkSection = {
-  title: string;
+  title?: string;
   subtitle?: string;
   items: DrinkItem[];
 };
 
-const sandoBar: SandwichSection = {
+// Fallback data
+const fallbackSandoBar: SandwichSection = {
   barTitle: 'SANDO BAR',
   subtitle: 'SANDWICHES FROIDS A BASE DE PAIN JAPONAIS',
   items: [
@@ -66,7 +68,7 @@ const sandoBar: SandwichSection = {
   ],
 };
 
-const dwichesBar: SandwichSection = {
+const fallbackDwichesBar: SandwichSection = {
   barTitle: 'DWICHES BAR',
   subtitle: 'SANDWICHES CHAUDS DANS UNE BONNE BAGUETTE',
   items: [
@@ -93,7 +95,7 @@ const dwichesBar: SandwichSection = {
   footer: 'LE VRAI GOUT D\'UNE PAUSE',
 };
 
-const drinksData: Record<string, DrinkSection> = {
+const fallbackDrinksData: Record<string, DrinkSection> = {
   coffeeBar: {
     title: 'COFFEE BAR',
     items: [
@@ -177,7 +179,7 @@ function SandwichCard({ barTitle, subtitle, items, footer }: SandwichSection) {
               {item.title}
             </h3>
             <div className="text-black font-bold text-[10px] sm:text-xs">
-              {item.description.map((line, lineIndex) => (
+              {item.description?.map((line, lineIndex) => (
                 <p key={lineIndex}>{line}</p>
               ))}
             </div>
@@ -228,11 +230,19 @@ type MenuType = 'boissons' | 'sandwichs';
 type MenuModalProps = {
   isOpen: boolean;
   menuType: MenuType;
+  menuData: {
+    boissons: {
+      subcategories?: MenuSubcategory[];
+    };
+    sandwichs: {
+      subcategories?: MenuSubcategory[];
+    };
+  };
   onClose: () => void;
   onNavigate: (type: MenuType) => void;
 };
 
-export default function MenuModal({ isOpen, menuType, onClose, onNavigate }: MenuModalProps) {
+export default function MenuModal({ isOpen, menuType, menuData, onClose, onNavigate }: MenuModalProps) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       onClose();
@@ -270,6 +280,50 @@ export default function MenuModal({ isOpen, menuType, onClose, onNavigate }: Men
     onNavigate(menuType === 'boissons' ? 'sandwichs' : 'boissons');
   };
 
+  // Process sandwich data
+  const sandwichSubcategories = menuData.sandwichs.subcategories || [];
+  const sandoBar = sandwichSubcategories[0] || fallbackSandoBar;
+  const dwichesBar = sandwichSubcategories[1] || fallbackDwichesBar;
+
+  const sandoData: SandwichSection = {
+    barTitle: sandoBar.barTitle || fallbackSandoBar.barTitle,
+    subtitle: sandoBar.subtitle || fallbackSandoBar.subtitle,
+    footer: sandoBar.footer,
+    items: sandoBar.items?.map(item => ({
+      title: item.title,
+      description: item.description,
+    })) || fallbackSandoBar.items,
+  };
+
+  const dwichesData: SandwichSection = {
+    barTitle: dwichesBar.barTitle || fallbackDwichesBar.barTitle,
+    subtitle: dwichesBar.subtitle || fallbackDwichesBar.subtitle,
+    footer: dwichesBar.footer || fallbackDwichesBar.footer,
+    items: dwichesBar.items?.map(item => ({
+      title: item.title,
+      description: item.description,
+    })) || fallbackDwichesBar.items,
+  };
+
+  // Process drinks data
+  const drinksSubcategories = menuData.boissons.subcategories || [];
+  const drinksData: Record<string, DrinkSection> = {};
+
+  drinksSubcategories.forEach((subcategory, index) => {
+    const key = Object.keys(fallbackDrinksData)[index] || `category${index}`;
+    drinksData[key] = {
+      title: subcategory.barTitle || subcategory.name,
+      subtitle: subcategory.subtitle,
+      items: subcategory.items?.map(item => ({
+        name: item.name || item.title,
+        variant: item.variant,
+      })) || [],
+    };
+  });
+
+  // Use fallback if no data from Sanity
+  const finalDrinksData = Object.keys(drinksData).length > 0 ? drinksData : fallbackDrinksData;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
@@ -305,23 +359,22 @@ export default function MenuModal({ isOpen, menuType, onClose, onNavigate }: Men
       >
         {menuType === 'sandwichs' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <SandwichCard {...sandoBar} />
-            <SandwichCard {...dwichesBar} />
+            <SandwichCard {...sandoData} />
+            <SandwichCard {...dwichesData} />
           </div>
         ) : (
           <div className="bg-white rounded-lg p-6 sm:p-8 md:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               <div>
-                <DrinkCategory {...drinksData.coffeeBar} />
-                <DrinkCategory {...drinksData.matchaBar} />
-                <DrinkCategory {...drinksData.sesameBar} />
-                <DrinkCategory {...drinksData.blueBar} />
+                {Object.entries(finalDrinksData).slice(0, 4).map(([key, data]) => (
+                  <DrinkCategory key={key} {...data} />
+                ))}
               </div>
 
               <div>
-                <DrinkCategory {...drinksData.chocolatBar} />
-                <DrinkCategory {...drinksData.ubeBar} />
-                <DrinkCategory {...drinksData.goldenBar} />
+                {Object.entries(finalDrinksData).slice(4).map(([key, data]) => (
+                  <DrinkCategory key={key} {...data} />
+                ))}
 
                 <div className="mt-6 sm:mt-8 space-y-1">
                   <p className="text-black font-bold text-[10px] sm:text-xs">

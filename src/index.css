@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Mono', monospace;
+  background-color: #f02721;
+  overflow-x: hidden;
+}
+
+.font-light {
+  font-weight: 300;
+}
+
+.font-regular {
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+@keyframes bounce-arrow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.animate-bounce-arrow {
+  animation: bounce-arrow 1.5s ease-in-out infinite;
+}
+
+.menu-item-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 1.5em;
+}
+
+.menu-item-text {
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-item-wrapper:hover .menu-item-text-original {
+  transform: translateY(-100%);
+}
+
+.menu-item-wrapper:hover .menu-item-text-clone {
+  transform: translateY(-100%);
+}
+
+.menu-item-text-clone {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.menu-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #ffcc00;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-item-wrapper:hover .menu-underline {
+  width: 100%;
+}
+
+.hamburger-line {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hamburger-open .hamburger-line {
+  background-color: #ffcc00;
+}
+
+.hamburger-open .hamburger-line:nth-child(1) {
+  width: 20px;
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-open .hamburger-line:nth-child(3) {
+  width: 20px;
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+@media (min-width: 640px) {
+  .hamburger-open .hamburger-line:nth-child(1) {
+    width: 24px;
+    transform: rotate(45deg) translate(6px, 6px);
+  }
+
+  .hamburger-open .hamburger-line:nth-child(3) {
+    width: 24px;
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+}
+
+.nav-expanded {
+  height: auto;
+}
+
+@media (min-width: 640px) {
+  .nav-expanded {
+  }
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: calc(50vw);
+  gap: 4px;
+}
+
+@media (min-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: calc(100vw / 3);
+    gap: 6px;
+  }
+}
+
+@media (min-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 25vw;
+    gap: 8px;
+  }
+}
